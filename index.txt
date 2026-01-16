@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystal Lotus - Tienda Online</title>
+    
+    <!-- 1. ESTILOS Y FUENTES -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 2. LIBRERÍAS -->
+    <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    
+    <!-- CONFIGURACIÓN DE ESTILOS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                        display: ['Fredoka', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            900: '#831843',
+                        },
+                        facebook: '#1877F2',
+                        instagram: '#E4405F'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Quicksand', sans-serif; }
+        h1, h2, h3, .font-display { font-family: 'Fredoka', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .loader { border: 4px solid #fce7f3; border-top: 4px solid #ec4899; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .card-hover:hover { transform: translateY(-5px); }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-brand-50 text-gray-700 selection:bg-brand-100">
+    
+    <div id="root">
+        <div class="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+            <div class="loader mb-4"></div>
+            <h2 class="text-2xl font-bold text-brand-500 mb-2 font-display">Cargando Crystal Lotus...</h2>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- ICONOS ---
+        const Icons = {
+            ShoppingBag: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>,
+            Plus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            Edit2: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
+            Trash2: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            X: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>,
+            Search: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            Smartphone: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>,
+            Save: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+            Lock: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+            Unlock: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>,
+            Settings: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+            Upload: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
+            Heart: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
+            Sparkles: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></svg>,
+            Gift: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>,
+            Instagram: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>,
+            User: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            Truck: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><path d="M14 17h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>,
+            LogOut: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
+            Facebook: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>,
+            Megaphone: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>,
+            Share2: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>,
+            Copy: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        };
+
+        // --- DATOS INICIALES ---
+        const InitialProducts = [
+            { id: 1, name: "Cuaderno Tapa Blanda Personalizable", price: 7000, description: "Cuaderno de tapa blanda, liviano y flexible, diseñado para adaptarse a tu estilo.", image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800", category: "Cuadernos", variants: ["48 Hojas", "60 Hojas", "80 Hojas", "Rayada", "Cuadriculada", "Lisa"], inStock: true },
+            { id: 2, name: "Cuaderno Tapa Rígida Personalizable", price: 9000, description: "Cuaderno resistente y duradero de tapa rígida. Superficie firme para proteger tus apuntes.", image: "https://images.unsplash.com/photo-1531346878377-a51e195e8e56?auto=format&fit=crop&q=80&w=800", category: "Cuadernos", variants: ["48 Hojas", "60 Hojas", "80 Hojas", "Rayada", "Cuadriculada", "Lisa"], inStock: true },
+            { id: 3, name: "Anotador Tapa Rígida Personalizable", price: 4000, description: "Anotador de tapa rígida, resistente y duradero. Ideal para llevar a todos lados.", image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80&w=800", category: "Cuadernos", variants: ["30 Hojas", "50 Hojas", "Rayada", "Cuadriculada", "Lisa"], inStock: true },
+            { id: 4, name: "Anotador Tapa Blanda Personalizable", price: 2500, description: "Anotador liviano y flexible, perfecto para notas rápidas.", image: "https://images.unsplash.com/photo-1595188882375-72c0506e78ba?auto=format&fit=crop&q=80&w=800", category: "Cuadernos", variants: ["30 Hojas", "50 Hojas", "Rayada", "Cuadriculada", "Lisa"], inStock: true },
+            { id: 5, name: "Agenda Tapa Rígida 365 Días", price: 15000, description: "Agenda anual para planificar tu día a día, metas y recordatorios.", image: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&q=80&w=800", category: "Agendas", variants: ["Portada a elección"], inStock: true },
+            { id: 6, name: "Agenda para Pediatras", price: 20000, description: "Agenda profesional diseñada para pediatras. Organiza turnos.", image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800", category: "Agendas", variants: ["Pediatría"], inStock: true },
+            { id: 7, name: "Agenda para Manicuristas", price: 20000, description: "Agenda ideal para manicuristas. Organiza turnos y clientas.", image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=800", category: "Agendas", variants: ["Manicuría"], inStock: true },
+            { id: 8, name: "Photocards K-Pop Doble Faz", price: 800, description: "Photocards estilo coleccionable doble faz, excelente calidad.", image: "https://images.unsplash.com/photo-1612152843869-7d8719c8d002?auto=format&fit=crop&q=80&w=800", category: "Merch Fanmade", variants: ["Individual ($800)", "Pack x5 ($3.500)", "Pack x10 ($6.800)", "Pack x15 ($9.600)", "Pack x20 ($12.000)"], inStock: true },
+            { id: 9, name: "Libro para Colorear (20 Ilust.)", price: 0, description: "Libro de tapa blanda con 20 dibujos listos para colorear.", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=800", category: "Papelería Creativa", variants: ["Infantil", "Adulto"], inStock: true },
+            { id: 10, name: "Pack Stickers Comunes", price: 2000, description: "Stickers de excelente calidad para decorar cuadernos.", image: "https://images.unsplash.com/photo-1572375992501-4b0892d50c69?auto=format&fit=crop&q=80&w=800", category: "Papelería Creativa", variants: ["x10 ($2.000)", "x20 ($3.600)", "x30 ($5.100)", "x40 ($6.400)"], inStock: true },
+            { id: 11, name: "Pack Stickers Resistentes al Agua", price: 2500, description: "Stickers durables ideales para botellas.", image: "https://images.unsplash.com/photo-1611566026373-c6c85447dbdc?auto=format&fit=crop&q=80&w=800", category: "Papelería Creativa", variants: ["x5 ($2.500)", "x10 ($5.000)", "x20 ($9.000)", "x30 ($12.750)", "x40 ($16.000)"], inStock: true },
+            { id: 12, name: "Impresión de Fotos Alta Calidad", price: 1000, description: "Servicio de impresión fotográfica, colores nítidos.", image: "https://images.unsplash.com/photo-1552168324-d612d77725e3?auto=format&fit=crop&q=80&w=800", category: "Impresiones Fotográficas", variants: ["10x14 cm ($1.000)", "14x20 cm ($2.000)", "20x28 cm ($4.000)"], inStock: true },
+            { id: 13, name: "Botella Plástica 750ml", price: 3500, description: "Botella reutilizable liviana y práctica.", image: "https://images.unsplash.com/photo-1602143407151-011141950038?auto=format&fit=crop&q=80&w=800", category: "Accesorios", variants: ["Varios Colores"], inStock: true }
+        ];
+
+        const InitialConfig = { 
+            storeName: "Crystal Lotus", 
+            storeSubtitle: "Regalería", 
+            logoUrl: "", 
+            whatsappNumber: "5491125573160", 
+            instagramUser: "@crystal_lotus.nb" 
+        };
+
+        const formatPrice = (price) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(price);
+
+        // --- COMPONENTES ---
+        
+        // Modal de Carrito
+        const CartDrawer = ({ isOpen, onClose, cart, removeFromCart, checkout, total }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex justify-end">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose}></div>
+                    <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-fade-in">
+                        <div className="p-5 border-b flex justify-between items-center bg-brand-50">
+                            <h2 className="text-xl font-bold text-gray-800 font-display flex items-center gap-2">
+                                <Icons.ShoppingBag className="text-brand-500" /> Mi Carrito
+                            </h2>
+                            <button onClick={onClose}><Icons.X /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                            {cart.length === 0 ? (
+                                <div className="text-center text-gray-400 py-10">
+                                    <Icons.ShoppingBag size={48} className="mx-auto mb-2 opacity-30" />
+                                    <p>Tu carrito está vacío 😿</p>
+                                </div>
+                            ) : (
+                                cart.map((item, index) => (
+                                    <div key={index} className="flex gap-4 p-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+                                        <img src={item.image} className="w-16 h-16 object-cover rounded-lg" />
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-sm text-gray-800 line-clamp-1">{item.name}</h4>
+                                            <p className="text-brand-500 font-bold text-sm">{formatPrice(item.price)}</p>
+                                        </div>
+                                        <button onClick={() => removeFromCart(index)} className="text-red-400 hover:text-red-600"><Icons.Trash2 size={18} /></button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <div className="p-5 border-t bg-gray-50">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="font-bold text-gray-500">Total</span>
+                                <span className="font-bold text-2xl text-brand-600">{formatPrice(total)}</span>
+                            </div>
+                            <button onClick={checkout} disabled={cart.length===0} className="w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center gap-2">
+                                <Icons.Smartphone /> Pedir por WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Modal Usuario
+        const UserModal = ({ isOpen, onClose, user, onLogin, onLogout, usersDb }) => {
+            const [isLogin, setIsLogin] = useState(true);
+            const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+            const [error, setError] = useState('');
+
+            useEffect(() => {
+                if(isOpen) { setFormData({ name: '', email: '', password: '' }); setError(''); }
+            }, [isOpen]);
+
+            if (!isOpen) return null;
+
+            const handleAuth = () => {
+                setError('');
+                if (!formData.email || !formData.password) { setError("Faltan datos"); return; }
+                
+                if (isLogin) {
+                    const foundUser = usersDb.find(u => u.email === formData.email && u.password === formData.password);
+                    if (foundUser) onLogin(foundUser);
+                    else setError("Email o contraseña incorrectos");
+                } else {
+                    if (!formData.name) { setError("El nombre es requerido"); return; }
+                    const exists = usersDb.find(u => u.email === formData.email);
+                    if (exists) { setError("Este email ya está registrado"); return; }
+                    
+                    const newUser = { ...formData, history: [] };
+                    onLogin(newUser);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-fade-in relative">
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><Icons.X /></button>
+                        
+                        {!user ? (
+                            <div>
+                                <h2 className="text-2xl font-display font-bold text-gray-800 mb-6 text-center">{isLogin ? '¡Hola de nuevo!' : 'Crear Cuenta'}</h2>
+                                <div className="space-y-3">
+                                    {!isLogin && (
+                                        <input type="text" placeholder="Tu Nombre" className="w-full p-3 rounded-lg border border-brand-200 focus:ring-2 focus:ring-brand-500 outline-none" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                    )}
+                                    <input type="email" placeholder="Tu Email" className="w-full p-3 rounded-lg border border-brand-200 focus:ring-2 focus:ring-brand-500 outline-none" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                                    <input type="password" placeholder="Tu Contraseña" className="w-full p-3 rounded-lg border border-brand-200 focus:ring-2 focus:ring-brand-500 outline-none" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                                    
+                                    {error && <p className="text-red-500 text-sm text-center font-bold">{error}</p>}
+                                    
+                                    <button onClick={handleAuth} className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors">
+                                        {isLogin ? 'Ingresar' : 'Registrarme'}
+                                    </button>
+                                    
+                                    <div className="text-center text-sm text-gray-500 mt-4">
+                                        {isLogin ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
+                                        <button onClick={() => setIsLogin(!isLogin)} className="text-brand-600 font-bold hover:underline">
+                                            {isLogin ? "Regístrate" : "Inicia Sesión"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-display font-bold text-gray-800">Mi Perfil</h2>
+                                    <button onClick={onLogout} className="text-red-500 text-sm font-bold flex items-center gap-1 hover:bg-red-50 px-3 py-1 rounded-full transition-colors"><Icons.LogOut size={16}/> Salir</button>
+                                </div>
+
+                                <div className="flex items-center gap-3 mb-6 bg-brand-50 p-4 rounded-xl">
+                                    <div className="bg-brand-200 p-3 rounded-full text-brand-600"><Icons.User size={24} /></div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800">{user.name}</h3>
+                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    </div>
+                                </div>
+                                
+                                <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2"><Icons.ShoppingBag size={18} /> Historial de Compras</h4>
+                                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                                    {(!user.history || user.history.length === 0) ? 
+                                        <p className="text-sm text-gray-400 text-center py-4 bg-gray-50 rounded-lg">Aún no has realizado compras.</p> 
+                                        : 
+                                        user.history.map((order, i) => (
+                                            <div key={i} className="border border-gray-100 p-3 rounded-lg text-sm bg-gray-50 hover:bg-white transition-colors shadow-sm">
+                                                <div className="flex justify-between mb-1">
+                                                    <span className="font-bold text-gray-600">{new Date(order.date).toLocaleDateString()}</span>
+                                                    <span className="font-bold text-brand-500">{formatPrice(order.total)}</span>
+                                                </div>
+                                                <p className="text-gray-500 text-xs truncate">{order.items.map(it => it.name).join(', ')}</p>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Modal de Marketing (PROMOTION CENTER)
+        const MarketingModal = ({ isOpen, onClose, product, config }) => {
+            if (!isOpen || !product) return null;
+
+            const promoText = `✨ ¡Mirá lo que entró en ${config.storeName}! ✨\n\n🌸 ${product.name}\n💰 Precio: ${formatPrice(product.price)}\n\n${product.description}\n\n🚚 Envíos a todo el país por Correo Argentino\n👉 Pedilo acá: ${window.location.href}`;
+            
+            const copyToClipboard = () => {
+                navigator.clipboard.writeText(promoText);
+                alert("¡Texto copiado! Ahora pégalo en tus redes.");
+            };
+
+            const shareFacebook = () => {
+                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(promoText)}`;
+                window.open(url, '_blank');
+            }
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-display font-bold text-brand-600 flex items-center gap-2">
+                                <Icons.Megaphone /> Centro de Marketing
+                            </h2>
+                            <button onClick={onClose}><Icons.X /></button>
+                        </div>
+
+                        {/* Preview Visual */}
+                        <div className="bg-brand-50 p-4 rounded-xl mb-4 text-center border border-brand-100">
+                            <img src={product.image} className="w-32 h-32 object-cover rounded-lg mx-auto mb-2 shadow-md" />
+                            <h3 className="font-bold text-gray-800">{product.name}</h3>
+                            <p className="text-brand-600 font-bold text-xl">{formatPrice(product.price)}</p>
+                            <p className="text-xs text-gray-500 mt-1">📸 Sácale captura a esto para tus Historias</p>
+                        </div>
+
+                        {/* Generador de Texto */}
+                        <div className="mb-4">
+                            <label className="text-xs font-bold text-gray-400 uppercase">Copy para Redes (Automático)</label>
+                            <textarea readOnly className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm h-32 mt-1 focus:outline-none resize-none" value={promoText}></textarea>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={copyToClipboard} className="col-span-2 bg-gray-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-colors">
+                                <Icons.Copy size={18} /> Copiar Texto
+                            </button>
+                            <button onClick={shareFacebook} className="bg-[#1877F2] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90">
+                                <Icons.Facebook size={18} /> Facebook
+                            </button>
+                            <button onClick={() => window.open('https://instagram.com', '_blank')} className="bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90">
+                                <Icons.Instagram size={18} /> Instagram
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ProductCard = ({ product, isAdmin, onEdit, onDelete, addToCart, onPromote }) => {
+            return (
+                <div className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full card-hover relative">
+                    <div className="absolute top-4 left-4 z-10">
+                         {product.inStock 
+                            ? <span className="bg-white/90 backdrop-blur text-brand-600 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1"><Icons.Sparkles size={12} /> Disponible</span>
+                            : <span className="bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">Agotado</span>
+                         }
+                    </div>
+
+                    <div className="relative h-72 overflow-hidden bg-gray-100">
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onError={(e) => {e.target.src = 'https://images.unsplash.com/photo-1554520735-0a6b8b6ce8b7?auto=format&fit=crop&q=80&w=800'}} />
+                        {product.inStock && !isAdmin && (
+                            <button onClick={() => addToCart(product)} className="absolute bottom-4 right-4 bg-white text-brand-600 p-3 rounded-full shadow-lg hover:bg-brand-600 hover:text-white transition-all transform translate-y-12 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">
+                                <Icons.Plus size={24} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="p-6 flex flex-col flex-grow relative">
+                        <div className="mb-2"><span className="text-[10px] uppercase tracking-widest text-brand-400 font-bold bg-brand-50 px-2 py-1 rounded">{product.category}</span></div>
+                        <h3 className="text-lg font-bold text-gray-800 leading-tight mb-2 font-display">{product.name}</h3>
+                        <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-grow">{product.description}</p>
+                        
+                        {product.variants && product.variants.length > 0 && product.variants[0] !== "" && (
+                            <div className="flex flex-wrap gap-1 mb-4">
+                                {product.variants.slice(0,3).map((variant, idx) => (
+                                    <span key={idx} className="text-[10px] text-gray-500 px-2 py-1 rounded bg-gray-100 border border-gray-200">{variant}</span>
+                                ))}
+                                {product.variants.length > 3 && <span className="text-[10px] text-gray-400 px-1 py-1">...</span>}
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
+                            <span className="text-2xl font-bold text-brand-600 font-display">{product.price > 0 ? formatPrice(product.price) : <span className="text-sm">Consultar</span>}</span>
+                            
+                            {isAdmin ? (
+                                <div className="flex gap-2">
+                                    <button onClick={() => onPromote(product)} className="p-2 bg-blue-100 text-blue-600 rounded-xl hover:bg-blue-200" title="Promocionar"><Icons.Megaphone size={18} /></button>
+                                    <button onClick={() => onEdit(product)} className="p-2 bg-yellow-100 text-yellow-600 rounded-xl hover:bg-yellow-200"><Icons.Edit2 size={18} /></button>
+                                    <button onClick={() => onDelete(product.id)} className="p-2 bg-red-100 text-red-500 rounded-xl hover:bg-red-200"><Icons.Trash2 size={18} /></button>
+                                </div>
+                            ) : (
+                                <button onClick={() => addToCart(product)} disabled={!product.inStock} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-md ${product.inStock ? 'bg-gray-900 text-white hover:bg-brand-600 hover:shadow-brand-200' : 'bg-gray-200 text-gray-400'}`}>
+                                    {product.inStock ? 'Agregar' : 'Sin Stock'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Modal Admin (Producto)
+        const ProductFormModal = ({ isOpen, onClose, product, onSubmit, onDelete }) => {
+            if (!isOpen) return null;
+            const [form, setForm] = useState(product || {});
+            
+            useEffect(() => {
+                if (product) setForm(product);
+                else setForm({ name: '', price: '', description: '', image: '', category: '', variants: '', inStock: true });
+            }, [product]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSubmit(form);
+            };
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if(file) setForm({...form, image: URL.createObjectURL(file)});
+            }
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-display font-bold text-gray-800">{product ? "Editar" : "Crear"} Producto</h2>
+                            <button onClick={onClose}><Icons.X /></button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase">Imagen</label>
+                                <div className="flex gap-2 mt-1">
+                                    <input type="text" className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm" value={form.image} onChange={e=>setForm({...form, image: e.target.value})} placeholder="URL..." />
+                                    <label className="cursor-pointer bg-brand-100 text-brand-600 p-2 rounded-lg"><Icons.Upload size={20} /><input type="file" className="hidden" onChange={handleImageUpload} /></label>
+                                </div>
+                                {form.image && <img src={form.image} className="h-20 w-full object-cover rounded-lg mt-2" />}
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase">Nombre</label>
+                                <input required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="text-xs font-bold text-gray-400 uppercase">Precio</label><input required type="number" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} /></div>
+                                <div><label className="text-xs font-bold text-gray-400 uppercase">Categoría</label><input required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2" value={form.category} onChange={e=>setForm({...form, category: e.target.value})} /></div>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase">Descripción</label>
+                                <textarea className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2" rows="3" value={form.description} onChange={e=>setForm({...form, description: e.target.value})}></textarea>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-400 uppercase">Variantes (Separa con comas)</label>
+                                <input className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2" value={Array.isArray(form.variants) ? form.variants.join(', ') : form.variants} onChange={e=>setForm({...form, variants: e.target.value})} />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="checkbox" checked={form.inStock} onChange={e=>setForm({...form, inStock: e.target.checked})} className="w-5 h-5 text-brand-600 rounded" />
+                                <label className="text-sm font-bold text-gray-600">Hay Stock</label>
+                            </div>
+                            <button type="submit" className="w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-brand-900 transition-colors">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            )
+        };
+
+        // --- APP PRINCIPAL ---
+        function App() {
+            const [products, setProducts] = useState(InitialProducts);
+            const [config, setConfig] = useState(InitialConfig);
+            const [isAdmin, setIsAdmin] = useState(false);
+            
+            // Carrito
+            const [cart, setCart] = useState([]);
+            const [isCartOpen, setIsCartOpen] = useState(false);
+            
+            // Gestión de Usuarios (Login/Registro)
+            const [usersDb, setUsersDb] = useState([]); // Base de datos de usuarios
+            const [user, setUser] = useState(null); // Usuario actual logueado
+            const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+
+            // Modales de Admin
+            const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+            const [editingProduct, setEditingProduct] = useState(null);
+            const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+            const [configForm, setConfigForm] = useState({});
+            const [isMarketingModalOpen, setIsMarketingModalOpen] = useState(false);
+            const [promoProduct, setPromoProduct] = useState(null);
+
+            const [searchTerm, setSearchTerm] = useState("");
+            const [selectedCategory, setSelectedCategory] = useState("Todos");
+
+            const categories = ["Todos", ...new Set(products.map(p => p.category))];
+
+            // Inicialización de Datos
+            useEffect(() => {
+                const savedProducts = localStorage.getItem('cl_products_v9');
+                const savedConfig = localStorage.getItem('cl_config_v9');
+                const savedUsersDb = localStorage.getItem('cl_users_db');
+                const savedCurrentUser = localStorage.getItem('cl_current_user');
+
+                if (savedProducts) setProducts(JSON.parse(savedProducts));
+                if (savedConfig) setConfig(JSON.parse(savedConfig));
+                if (savedUsersDb) setUsersDb(JSON.parse(savedUsersDb));
+                if (savedCurrentUser) setUser(JSON.parse(savedCurrentUser));
+            }, []);
+
+            // Guardado automático
+            useEffect(() => {
+                localStorage.setItem('cl_products_v9', JSON.stringify(products));
+                localStorage.setItem('cl_config_v9', JSON.stringify(config));
+                localStorage.setItem('cl_users_db', JSON.stringify(usersDb));
+                if(user) localStorage.setItem('cl_current_user', JSON.stringify(user));
+                else localStorage.removeItem('cl_current_user');
+            }, [products, config, usersDb, user]);
+
+            // -- Lógica Carrito --
+            const addToCart = (product) => {
+                setCart([...cart, product]);
+                setIsCartOpen(true);
+            };
+            const removeFromCart = (index) => {
+                const newCart = [...cart];
+                newCart.splice(index, 1);
+                setCart(newCart);
+            };
+            const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
+
+            const handleCheckout = () => {
+                const newOrder = { date: new Date(), items: cart, total: cartTotal };
+                
+                // Si hay usuario logueado, guardamos en su historial
+                if (user) {
+                    const updatedUser = { ...user, history: [newOrder, ...(user.history || [])] };
+                    setUser(updatedUser);
+                    const updatedDb = usersDb.map(u => u.email === user.email ? updatedUser : u);
+                    setUsersDb(updatedDb);
+                }
+
+                // WhatsApp
+                let message = `Hola *${config.storeName}*! 👋\nQuiero realizar el siguiente pedido:\n\n`;
+                cart.forEach(item => {
+                    message += `• ${item.name} - ${formatPrice(item.price)}\n`;
+                });
+                message += `\n*Total: ${formatPrice(cartTotal)}*`;
+                if(user) message += `\n\nSoy: ${user.name} (${user.email})`;
+                message += `\nEnvío: Correo Argentino 🇦🇷`;
+
+                const url = `https://wa.me/${config.whatsappNumber}?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+                setCart([]);
+                setIsCartOpen(false);
+            };
+
+            // -- Lógica de Usuarios --
+            const handleLogin = (loggedUser) => {
+                const exists = usersDb.find(u => u.email === loggedUser.email);
+                if (!exists) {
+                    setUsersDb([...usersDb, loggedUser]);
+                }
+                setUser(loggedUser);
+                setIsUserModalOpen(false);
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+                setIsUserModalOpen(false);
+            };
+
+            // -- Lógica Admin --
+            const handleAdminToggle = () => {
+                if (isAdmin) setIsAdmin(false);
+                else {
+                    const pass = prompt("🔑 PIN de Acceso:");
+                    if (pass === "5656") { setIsAdmin(true); alert("Modo Dueña Activado ✨"); }
+                    else if (pass) alert("PIN Incorrecto");
+                }
+            };
+
+            const handleSaveProduct = (productData) => {
+                const variants = typeof productData.variants === 'string' ? productData.variants.split(',').map(v=>v.trim()) : productData.variants;
+                const finalProduct = { ...productData, variants, price: parseFloat(productData.price) || 0 };
+                
+                if (finalProduct.id) {
+                    setProducts(products.map(p => p.id === finalProduct.id ? finalProduct : p));
+                } else {
+                    setProducts([{ ...finalProduct, id: Date.now() }, ...products]);
+                }
+                setIsProductModalOpen(false);
+            };
+
+            const handleDeleteProduct = (id) => {
+                if(confirm("¿Eliminar este producto?")) setProducts(products.filter(p => p.id !== id));
+            };
+
+            const filteredProducts = products.filter(p => {
+                const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchCat = selectedCategory === "Todos" || p.category === selectedCategory;
+                return matchSearch && matchCat;
+            });
+
+            return (
+                <div className="pb-20 md:pb-0">
+                    {/* Barra de Aviso */}
+                    <div className="bg-brand-900 text-white text-xs font-bold text-center py-2 px-4 flex items-center justify-center gap-2">
+                        <Icons.Truck size={16} /> ENVÍOS A TODO EL PAÍS POR CORREO ARGENTINO
+                    </div>
+
+                    {/* Navbar */}
+                    <nav className="glass-effect sticky top-0 z-40 border-b border-brand-100">
+                        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                {config.logoUrl ? <img src={config.logoUrl} className="h-10 w-auto rounded-lg" /> : <div className="bg-brand-500 text-white p-2 rounded-lg"><Icons.Gift /></div>}
+                                <div>
+                                    <h1 className="text-xl font-bold text-gray-800 font-display leading-none">{config.storeName}</h1>
+                                    <p className="text-xs text-brand-500 font-bold tracking-widest">{config.storeSubtitle}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                                {!isAdmin && (
+                                    <button onClick={() => setIsCartOpen(true)} className="relative p-2 text-gray-600 hover:text-brand-600 transition-colors">
+                                        <Icons.ShoppingBag />
+                                        {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-brand-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold animate-bounce">{cart.length}</span>}
+                                    </button>
+                                )}
+
+                                {!isAdmin && (
+                                    <button onClick={() => setIsUserModalOpen(true)} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-brand-600 bg-brand-50 px-3 py-1.5 rounded-full border border-transparent hover:border-brand-200 transition-all">
+                                        <Icons.User size={18} />
+                                        <span className="hidden sm:inline">{user ? user.name.split(' ')[0] : 'Ingresar'}</span>
+                                    </button>
+                                )}
+
+                                <button onClick={handleAdminToggle} className={`p-2 rounded-full transition-colors ${isAdmin ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-gray-100'}`}>
+                                    {isAdmin ? <Icons.Unlock size={18} /> : <Icons.Lock size={18} />}
+                                </button>
+                                
+                                {isAdmin && <button onClick={() => {setConfigForm(config); setIsConfigModalOpen(true)}} className="text-gray-400 hover:text-brand-500"><Icons.Settings /></button>}
+                            </div>
+                        </div>
+                    </nav>
+
+                    {/* Hero & Filtros */}
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        <div className="text-center mb-10">
+                            <h2 className="text-4xl md:text-6xl font-bold text-gray-800 font-display mb-4">
+                                <span className="text-brand-500">Regalar</span> es amar
+                            </h2>
+                            <p className="text-gray-500 text-lg max-w-xl mx-auto">Encuentra ese detalle especial que estás buscando. Papelería, accesorios y mucho más.</p>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-10 sticky top-24 z-30 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-brand-50">
+                            <div className="relative w-full md:w-96">
+                                <span className="absolute left-4 top-3.5 text-gray-400"><Icons.Search size={18} /></span>
+                                <input type="text" placeholder="Buscar..." className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 focus:ring-2 focus:ring-brand-200 transition-all" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+                                {categories.map(cat => (
+                                    <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-brand-600 text-white shadow-lg shadow-brand-200' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}`}>{cat}</button>
+                                ))}
+                            </div>
+                            {isAdmin && <button onClick={() => {setEditingProduct(null); setIsProductModalOpen(true)}} className="w-full md:w-auto bg-gray-900 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-colors"><Icons.Plus size={18} /> Nuevo Producto</button>}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {filteredProducts.map(p => (
+                                <ProductCard 
+                                    key={p.id} 
+                                    product={p} 
+                                    isAdmin={isAdmin}
+                                    onEdit={() => {setEditingProduct(p); setIsProductModalOpen(true)}}
+                                    onDelete={handleDeleteProduct}
+                                    addToCart={addToCart}
+                                    onPromote={(p) => { setPromoProduct(p); setIsMarketingModalOpen(true); }}
+                                />
+                            ))}
+                        </div>
+                    </main>
+
+                    {/* Modales */}
+                    <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} removeFromCart={removeFromCart} total={cartTotal} checkout={handleCheckout} />
+                    <UserModal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} user={user} onLogin={handleLogin} onLogout={handleLogout} usersDb={usersDb} />
+                    <ProductFormModal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} product={editingProduct} onSubmit={handleSaveProduct} />
+                    <MarketingModal isOpen={isMarketingModalOpen} onClose={() => setIsMarketingModalOpen(false)} product={promoProduct} config={config} />
+
+                    {/* Modal Configuración */}
+                    {isConfigModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                            <div className="bg-white rounded-2xl w-full max-w-md p-6">
+                                <h3 className="text-xl font-bold mb-4">Configuración</h3>
+                                <form onSubmit={(e) => {e.preventDefault(); setConfig(configForm); setIsConfigModalOpen(false)}} className="space-y-4">
+                                    <div><label className="text-xs font-bold uppercase">Logo URL</label><input className="w-full border rounded p-2" value={configForm.logoUrl} onChange={e=>setConfigForm({...configForm, logoUrl: e.target.value})} /></div>
+                                    <div><label className="text-xs font-bold uppercase">Nombre Tienda</label><input className="w-full border rounded p-2" value={configForm.storeName} onChange={e=>setConfigForm({...configForm, storeName: e.target.value})} /></div>
+                                    <div><label className="text-xs font-bold uppercase">WhatsApp</label><input className="w-full border rounded p-2" value={configForm.whatsappNumber} onChange={e=>setConfigForm({...configForm, whatsappNumber: e.target.value})} /></div>
+                                    <button className="w-full bg-brand-600 text-white font-bold py-3 rounded-xl">Guardar</button>
+                                </form>
+                                <button onClick={() => setIsConfigModalOpen(false)} className="w-full mt-2 text-gray-400 text-sm">Cancelar</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
+
